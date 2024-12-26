@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from scipy import stats
 from scipy.special import kl_div
@@ -45,3 +47,19 @@ def evaluate_standard_error(N, Mu_analytical, Sigma_analytical, Mu_gt, Sigma_gt)
 
 def evaluate_kl_divergence(xs, ys):
     return kl_div(xs, ys)
+
+def fibonacci_sphere(start_point, num_grid_points=400):
+    points = []
+    phi = math.pi * (math.sqrt(5.) - 1.)  # golden angle in radians
+
+    for i in range(num_grid_points):
+        z = 1 - (i / float(num_grid_points - 1)) * 2  # y goes from 1 to -1
+        lat = math.asin(z)
+
+        lon = (phi * i) % (2 * math.pi)  # golden angle increment
+        if lon > math.pi and lon < 2 * math.pi:
+            lon -= 2 * math.pi
+
+        points.append((lat / (0.5 * math.pi), lon / math.pi))
+
+    return points
