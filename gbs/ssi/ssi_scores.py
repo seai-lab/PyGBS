@@ -1,9 +1,4 @@
-from libpysal.weights import lat2W
 import numpy as np
-from matplotlib import pyplot as plt
-
-from scipy.stats import norm
-from scipy import sparse
 
 from utils import construct_weight_matrix, generate_background_points
 from surprisal import AnalyticalSurprisal
