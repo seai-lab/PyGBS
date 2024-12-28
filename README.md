@@ -1,4 +1,4 @@
-# Geo-Bias Score Toolkit
+# PyGBS: A Python Geo-Bias Score Toolkit
 
 ## Overview
 Geo-Bias Score (GBS) is a collection of information-theoretic, model-agnostic metrics of how much geospatial bias (i.e., non-uniform performance across different regions on Earth) there is when we evaluate a model. It is complementary to existing model performance metrics such as accuracy, precision, recall and reciprocal rank. This project aims at providing a plug-and-play toolkit for researchers to painlessly benchmarking the geo-bias of their models and encouraging them to report the geo-bias scores alongside with other metrics, in hopes of boosting the fairness and trustworthiness of spatial data analysis and GeoAI research -- In fact, we find that while introducing fine-grained geospatial information into models greatly improves the performance, it also significantly increases geo-bias. It is important to pay attention to both sides of the coin. 
