@@ -1,65 +1,96 @@
-import math
-
 import numpy as np
-from scipy import stats
-from scipy.special import kl_div
 
-def construct_edge_weight(w, d):
-    map = np.zeros((d*d,d*d))
+from sklearn.neighbors import KDTree, BallTree
 
-    for a in range(d*d):
-        i, j = a // d, a % d
-        for b in range(d*d):
-            p, q = b // d, b % d
-            try:
-                map[a,b] = w[a][b]
-            except:
-                pass
+from scipy import sparse
+from scipy.spatial.transform import Rotation as R
 
-    return map
+def construct_weight_matrix(points, k):
+    """
+    :param points: spherical coordinates of points, in radians.
+    :param k: k nearest neighbors to build the weight matrix.
+    :return: 0-1 weight matrix.
+    """
+    kdt = BallTree(points, leaf_size=30, metric='haversine')
+    nbrs = kdt.query(points, k=k+1, return_distance=False)
 
-def count_multicat_square_switches(Z, cs):
-    d = Z.shape[0]
-    c = len(cs)
-    qdict = dict(zip([(a,b) for a in range(c) for b in range(c)], [0 for _ in range(c*c)]))
-    v2idx = dict(zip(cs, range(c)))
-    for i in range(d):
-        for j in range(d):
-            for m in [(0,1), (0,-1), (1,0), (-1,0)]:
-                p, q = i + m[0], j + m[1]
-                if p >= 0 and q >= 0 and p < d and q < d:
-                    qdict[v2idx[Z[i,j]], v2idx[Z[p,q]]] += 1
+    weights, coord_is, coord_js = [], [], []
 
-    return qdict
+    for i, ni in enumerate(nbrs):
+        for j in ni:
+            if i != j:
+                weights.append(1)
+                coord_is.append(i)
+                coord_js.append(j)
 
-def evaluate_goodness_of_fit(scovs, mean, std):
-    standard_scovs = (scovs - mean) / std
-    return stats.kstest(standard_scovs, "norm", alternative="two-sided")
+    return sparse.coo_matrix((weights, (coord_is, coord_js)), shape=(points.shape[0], points.shape[0]))
 
-def evaluate_standard_error(N, Mu_analytical, Sigma_analytical, Mu_gt, Sigma_gt):
-    Sigma_sem = Sigma_gt / np.sqrt(N)
-    Sigma_sev = Sigma_gt**2 * np.sqrt(2 / (N - 1))
+def _latlon_to_xyz(points):
+    """
+    :param points: spherical coordinates of points, in radians.
+    :return: 3D Cartesian coordinates of points.
+    """
+    xyzs = []
 
-    Mu_diff = np.abs(Mu_analytical - Mu_gt) / Sigma_sem
-    Var_diff = np.abs(Sigma_analytical**2 - Sigma_gt**2) / Sigma_sev
+    for phi, theta in points:
+        r = np.cos(phi)
+        x = np.cos(theta) * r
+        y = np.sign(phi) * np.sin(theta) * r
+        z = np.sin(phi)
 
-    return Sigma_sem, Sigma_sev, Mu_diff, Var_diff
+        xyzs.append((x, y, z))
 
-def evaluate_kl_divergence(xs, ys):
-    return kl_div(xs, ys)
+    return np.array(xyzs)
 
-def fibonacci_sphere(start_point, num_grid_points=400):
+def _xyz_to_latlon(xyzs):
+    lat = np.arcsin(xyzs[:, 2])
+    lon = np.arctan2(xyzs[:, 1], xyzs[:, 0])
+
+    return np.array(lat, lon).T
+
+def _get_euler_angles(center):
+    return 0.5 * np.pi - center[0], center[1]
+
+def _get_default_circular_grid_points(radius, density):
+    """
+    :param radius: the range of circular grid, in radians.
+    :param density: the density of grid points, in terms of point counts in unit square radian.
+    :return: spherical coordinates of circular grid points with given radius and density around the northern pole.
+    """
+    dist = 1 / np.sqrt(density)
+    n_lag = int(np.ceil(radius / dist))
+
     points = []
-    phi = math.pi * (math.sqrt(5.) - 1.)  # golden angle in radians
+    for i in range(1, n_lag + 1):
+        n_points = int(np.ceil(2 * np.pi * i))
+        delta_angle = 2 * np.pi / n_points
+        for j in range(n_points):
+            points.append([np.pi / 2 - dist * i, -np.pi + delta_angle * j])
 
-    for i in range(num_grid_points):
-        z = 1 - (i / float(num_grid_points - 1)) * 2  # y goes from 1 to -1
-        lat = math.asin(z)
+    return np.array(points)
 
-        lon = (phi * i) % (2 * math.pi)  # golden angle increment
-        if lon > math.pi and lon < 2 * math.pi:
-            lon -= 2 * math.pi
+def _center_circular_grid_points(xyzs, center):
+    """
+    :param xyzs: 3D Cartesian coordinates of circular grid points around the northern pole.
+    :param center: the (latitude, longitude) of the center point, in radians.
+    :return: the 3D Cartesian coordinates of circular grid points around the given center.
+    """
+    rotate_phi, rotate_theta = _get_euler_angles(center)
+    r = R.from_euler('yz', [rotate_phi, rotate_theta], degrees=False)
 
-        points.append((lat / (0.5 * math.pi), lon / math.pi))
+    return r.apply(xyzs)
 
-    return points
+def generate_background_points(center, radius, density):
+    """
+    :param center: the (latitude, longitude) of the center point, in radians.
+    :param radius: the range of circular grid, in radians. It needs to be in the range of (0, pi/2).
+    :param density: the density of grid points, in terms of point counts in unit square radians.
+    :return: spherical coordinates of circular grid points with given radius and density around the given center, in radians.
+    """
+
+    default_circular_grid_points = _get_default_circular_grid_points(radius, density)
+    xyzs = _latlon_to_xyz(default_circular_grid_points)
+
+    rotated_xyzs = _center_circular_grid_points(xyzs, center)
+
+    return _xyz_to_latlon(rotated_xyzs)
