@@ -1,7 +1,7 @@
 import numpy as np
 
-from utils import construct_weight_matrix, generate_background_points
-from surprisal import AnalyticalSurprisal
+from .utils import construct_weight_matrix, generate_background_points
+from .surprisal import AnalyticalSurprisal
 
 analytical_surprisal = AnalyticalSurprisal()
 

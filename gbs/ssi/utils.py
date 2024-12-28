@@ -23,7 +23,7 @@ def construct_weight_matrix(points, k):
                 coord_is.append(i)
                 coord_js.append(j)
 
-    return sparse.coo_matrix((weights, (coord_is, coord_js)), shape=(points.shape[0], points.shape[0]))
+    return sparse.coo_matrix((weights, (coord_is, coord_js)), shape=(points.shape[0], points.shape[0])).toarray()
 
 def _latlon_to_xyz(points):
     """
@@ -46,7 +46,7 @@ def _xyz_to_latlon(xyzs):
     lat = np.arcsin(xyzs[:, 2])
     lon = np.arctan2(xyzs[:, 1], xyzs[:, 0])
 
-    return np.array(lat, lon).T
+    return np.array([lat, lon]).T
 
 def _get_euler_angles(center):
     return 0.5 * np.pi - center[0], center[1]

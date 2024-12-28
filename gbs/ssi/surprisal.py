@@ -1,48 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 
-class Surprisal:
-    def __init__(self):
-        pass
-
-class EmpiricalSurprisal(Surprisal):
-    def __init__(self):
-        super().__init__()
-
-    @staticmethod
-    def compute_mean(cs, ns, mus):
-        N = np.sum(ns)
-        xmean = np.sum(cs * ns) / N
-        mu = 0.
-
-        for i, (ci, ni) in enumerate(zip(cs, ns)):
-            for j, (cj, nj) in enumerate(zip(cs, ns)):
-                mu += ((ci - xmean) * (cj - xmean) * mus[(i, j)])
-
-        return mu
-
-    @staticmethod
-    def compute_std(cs, ns, sigmas, ignores=None):
-        N = np.sum(ns)
-        r_max = np.where(ignores == 0)[0][0]
-        xmean = np.sum(cs * ns) / N
-        var = 0.
-        if ignores is None:
-            ignores = np.ones_like(ns)
-        for i, (ci, ni, igi) in enumerate(zip(cs, ns, ignores)):
-            for j, (cj, nj, igj) in enumerate(zip(cs, ns, ignores)):
-                var_num = sigmas[(i, j)]**2
-                if ci != cj:
-                    var_coef = ((ci - xmean) * (cj - xmean) - 2 * (ci - xmean) * (cs[r_max] - xmean) + (
-                                cs[r_max] - xmean) ** 2) ** 2
-                    var += var_coef * var_num * igi * igj
-                else:
-                    var_coef = (ci - cs[r_max]) ** 4
-                    var += var_coef * var_num * igi * igj
-
-        return np.sqrt(var)
-
-class AnalyticalSurprisal(Surprisal):
+class AnalyticalSurprisal():
     def __init__(self):
         super().__init__()
 
@@ -95,37 +54,6 @@ class AnalyticalSurprisal(Surprisal):
 
         return norm.pdf(moran_I_upper, loc=self.mean, scale=self.std)
 
-    def compute_wiki_S(self, w_map, Z):
-        d = Z.shape[0]
-        N = d * d
-        W = np.sum(w_map)
-        x = Z.flatten()
-        xmean = np.mean(Z)
-        S1, S2, S3, S4, S5 = 0., 0., 0., 0., 0.
-        # for i in range(N):
-        #     S2_tmp = 0.
-        #     for j in range(N):
-        #         S1 += (w_map[i,j] + w_map[j,i])**2 / 2
-        #         S2_tmp += (np.sum(w_map[i,:]) + np.sum(w_map[:,i]))**2
-        #
-        #     S2 += S2_tmp
-        S1 = 2 * np.sum(w_map**2)
-        S2 = 4 * np.sum(np.sum(w_map, axis=1)**2)
-        S3 = N * np.sum(np.power((x - xmean), 4)) / (np.sum(np.power(x - xmean, 2)))**2
-
-        S4 = (N**2 - 3*N + 3) * S1 - N * S2 + 3*W**2
-        S5 = (N**2 - N) * S1 - 2 * N * S2 + 6*W**2
-
-        return S1, S2, S3, S4, S5, W
-
-    def compute_wiki_mean_and_std(self, w_map, Z):
-        N = Z.shape[0] * Z.shape[1]
-        S1, S2, S3, S4, S5, W = self.compute_wiki_S(w_map, Z)
-        Mu_wiki = -1 / (N - 1)
-        Sigma_wiki = np.sqrt((N * S4 - S3 * S5) / ((N - 1) * (N - 2) * (N - 3) * W**2) - Mu_wiki**2)
-
-        return Mu_wiki, Sigma_wiki
-
     @staticmethod
     def compute_mean(cs, ns):
         N = np.sum(ns)
@@ -149,33 +77,6 @@ class AnalyticalSurprisal(Surprisal):
                 mu_coef_dict[(i, j)] = mu_coef
 
         return mu, mu_dict, mu_coef_dict
-
-    # @staticmethod
-    # def compute_mean_test(cs, ns, ignores=None):
-    #     N = np.sum(ns)
-    #     r_max = np.where(ignores == 0)[0][0]
-    #     xmean = np.sum(cs * ns) / N
-    #     mean = 0.
-    #     Q = 4 * N * (cs[r_max] - xmean)**2
-    #     print(Q)
-    #     if ignores is None:
-    #         ignores = np.ones_like(ns)
-    #     for ci, ni, igi in zip(cs, ns, ignores):
-    #         Q += 2 * ((ci - xmean) * (cs[r_max] - xmean) - (cs[r_max] - xmean)**2) * 4 * ni * igi
-    #         for cj, nj, igj in zip(cs, ns, ignores):
-    #             if ci != cj:
-    #                 mean_num = min(ni, nj) * 4 * max(ni, nj) / N
-    #                 mean_coef = ((ci - xmean) * (cj - xmean) - 2 * (ci - xmean) * (cs[r_max] - xmean) + (
-    #                             cs[r_max] - xmean) ** 2)
-    #                 mean += mean_coef * mean_num * igi * igj
-    #             else:
-    #                 mean_num = ((ni - 1) * 4 * ni / N - 1)
-    #                 mean_coef = (ci - cs[r_max]) ** 2
-    #                 mean += mean_coef * mean_num * igi * igj
-    #
-    #     print(Q, mean)
-    #
-    #     return Q + mean
 
     @staticmethod
     def compute_std(cs, ns, ignores=None):
