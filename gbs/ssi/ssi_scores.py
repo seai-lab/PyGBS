@@ -32,7 +32,7 @@ def compute_presence_nonpresence_ssi(presence_points, center, radius, density, k
     analytical_surprisal.fit(cs, ns, weight_matrix, ignores)
     prob = analytical_surprisal.get_probability(values, weight_matrix)
 
-    return -np.log(prob[0])
+    return -np.log(prob[0] + 1e-256)
 
 def compute_relative_performance_ssi(presence_points, presence_values, center, radius, density, k=4):
     """
@@ -62,4 +62,4 @@ def compute_relative_performance_ssi(presence_points, presence_values, center, r
     analytical_surprisal.fit(cs, ns, weight_matrix, ignores)
     prob = analytical_surprisal.get_probability(values, weight_matrix)
 
-    return -np.log(prob[0])
+    return -np.log(prob[0] + 1e-256)
