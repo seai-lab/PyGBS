@@ -9,9 +9,7 @@ from gbs import compute_presence_nonpresence_ssi, compute_relative_performance_s
 
 # convert km to randian
 def km_to_radians(km):
-    # Earth's average radius in kilometers
     earth_radius_km = 6371.0
-    # Convert km to radians
     radians = km / earth_radius_km
     return radians
 
@@ -26,7 +24,6 @@ def preprocess_data(data_df):
     # Delete rows with NaN in 'lon' or 'lat'
     data_df.dropna(subset=['lon', 'lat'], inplace=True)
 
-    # Convert 'lon' and 'lat' to radians
     data_df[['lon', 'lat']] = np.radians(data_df[['lon', 'lat']].values)
 
     return data_df
@@ -58,11 +55,9 @@ def find_neighbors_within_radius(data, low_point, radius):
         lat, lon = point[0], point[1]
         distance = haversine(low_lat, low_lon, lat, lon)  # Angular distance in radians
 
-        # Check if the distance is within the specified radius
         if distance <= radius:
-            metric = point[2]  # Assuming 3rd column in data is the metric (e.g., hit@1, hit@3)
-            neighbors.append([lat, lon, metric])  # Store the neighbor's lat, lon, and metric
-
+            metric = point[2]  
+            neighbors.append([lat, lon, metric]) 
     return np.array(neighbors)
 
 def compute_weighted_average_ssi(neighbors, ssi_function, low_point, radius, density, k=4):
