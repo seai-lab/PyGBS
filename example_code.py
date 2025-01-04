@@ -1,16 +1,28 @@
-import numpy as np
-
+from gbsio import read_from_csv
+from partition import NeighborhoodPartitioner
 from gbs import compute_presence_nonpresence_ssi, compute_relative_performance_ssi
 
-center = np.array([0.3 * 0.5 * np.pi, -0.4 * np.pi])
-radius = 0.1
-presence_points = center + 0.8 * radius * (2 * (np.random.rand(100, 2) - 0.5))
-presence_values = np.random.choice([-1, 1], presence_points.shape[0], p=[0.25, 0.75])
+## Read coordinates and values from CSV file.
+coords, values = read_from_csv("data/example_data.csv", value_column="hit@1")
 
-# for density in [8000, 12000, 16000, 20000]:
-for density in np.array([8000, 12000, 16000, 20000]):
-    ## pnp_ssi is the former base geo-bias
-    pnp_ssi = compute_presence_nonpresence_ssi(presence_points, center, radius, density, k=4)
-    ## rp_ssi is the former relative geo-bias
-    rp_ssi = compute_relative_performance_ssi(presence_points, presence_values, center, radius, density, k=4)
-    print("Presence v.s. Non-Presence SSI Score: ", pnp_ssi, "Relative Performance SSI Score: ", rp_ssi)
+## Construct a partitioner that extract neighborhood points.
+partitioner = NeighborhoodPartitioner(coords, values, k=100)
+
+## The index of the center point to evaluate.
+idx = 0
+center = coords[idx]
+
+## The radius of the neighborhood.
+radius = 0.1
+
+## Extract neighbood points.
+presence_points, presence_values = partitioner.get_neighborhood(idx, radius)
+
+## Use automatic density estimation. Users can manually specify this hyperparameter.
+
+## pnp_ssi is the former base geo-bias
+pnp_ssi = compute_presence_nonpresence_ssi(presence_points, center, radius, density="auto", k=4)
+## rp_ssi is the former relative geo-bias
+rp_ssi = compute_relative_performance_ssi(presence_points, presence_values, center, radius, density="auto", k=4)
+
+print("Presence v.s. Non-Presence SSI Score: ", pnp_ssi, "Relative Performance SSI Score: ", rp_ssi)

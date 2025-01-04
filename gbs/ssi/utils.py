@@ -5,6 +5,9 @@ from sklearn.neighbors import KDTree, BallTree
 from scipy import sparse
 from scipy.spatial.transform import Rotation as R
 
+def auto_density(radius, n_neighbors):
+    return int(np.ceil((5 * n_neighbors) / (np.pi * radius**2)))
+
 def construct_weight_matrix(points, k):
     """
     :param points: spherical coordinates of points, in radians.
