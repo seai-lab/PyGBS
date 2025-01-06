@@ -12,9 +12,9 @@ We will be actively supporting more GBS categories in the future.
 ## Supported Geo-Bias Scores
 ### SSI Scores
 In classic geostatistics, an _unmarked_ measurement only cares about the spatial distribution of data (i.e., the data points are not "marked" with specific values), while a _marked_ measurement additionally cares about the values of data. Following this naming tradition, we have two types of SSI Scores:
-#### Unmarked SSI Score
+#### Unmarked SSI
 It only accounts for the spatial arrangement of the observed data.
-#### Marked SSI Score
+#### Marked SSI
 It comprehensively accounts for both the spatial arrangement of the observed data, and how the high/low performance values scatter through the data. Beware that the Marked SSI Score can not be directly compared with the Unmarked SSI Score.
 ### SRI Scores
 SRI measures the heterogeneity of model performance within a given region of interest (ROI). If a model is not geo-biased, its performance should be similar across the entire ROI and within any local partition of the ROI. Based on how we partition the ROI, we provide 4 types of SRI Scores, each score corresponding to a certain type of spatial heterogeneity.
