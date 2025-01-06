@@ -27,7 +27,7 @@ def _xyz_to_latlon(xyzs):
 def _get_euler_angles(center):
     return 0.5 * np.pi - center[0], center[1]
 
-def _get_fibonacci_grid_points(radius, density):
+def _get_polar_concentric_grid_points(radius, density):
     """
     :param radius: the range of circular grid, in radians.
     :param density: the density of grid points, in terms of point counts in unit square radian.
@@ -45,7 +45,7 @@ def _get_fibonacci_grid_points(radius, density):
 
     return np.array(points)
 
-def _get_concentric_grid_points(xyzs, center):
+def _center_grid_points(xyzs, center):
     """
     :param xyzs: 3D Cartesian coordinates of circular grid points around the northern pole.
     :param center: the (latitude, longitude) of the center point, in radians.
@@ -55,3 +55,36 @@ def _get_concentric_grid_points(xyzs, center):
     r = R.from_euler('yz', [rotate_phi, rotate_theta], degrees=False)
 
     return r.apply(xyzs)
+
+def _move_points_to_polar(xyzs, center):
+    """
+    :param xyzs: 3D Cartesian coordinates of points.
+    :param center: the (latitude, longitude) of the center point, in radians.
+    :return: the 3D Cartesian coordinates of points centered at the northern pole.
+    """
+    rotate_phi, rotate_theta = _get_euler_angles(center)
+    r = R.from_euler('zy', [-rotate_theta, -rotate_phi], degrees=False)
+
+    return r.apply(xyzs)
+
+def _get_arc_angles(points, center):
+    """
+    :param points: spherical coordinates of points, in radians.
+    :param center: the (latitude, longitude) of the center point, in radians.
+    :return: the absolute arc angles between each point and the south-pointing arc passing the center.
+    """
+    xyzs = _latlon_to_xyz(points)
+    polar_xyzs = _move_points_to_polar(xyzs, center)
+    polar_points = _xyz_to_latlon(polar_xyzs)
+
+    raw_angles = polar_points[:, 1] - center[1]
+    idx = np.where(np.abs(raw_angles) > np.pi)
+
+    if (raw_angles[idx] > 0).all():
+        raw_angles[idx] = -(2 * np.pi - raw_angles[idx])
+    elif (raw_angles[idx] < 0).all():
+        raw_angles[idx] = 2 * np.pi + raw_angles[idx]
+    else:
+        assert False, "Incorrect angle sign!"
+
+    return raw_angles

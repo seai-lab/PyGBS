@@ -3,6 +3,8 @@ import numpy as np
 from sklearn.neighbors import KDTree, BallTree
 from sklearn.metrics.pairwise import haversine_distances
 
+from utils.geometry import _get_arc_angles
+
 class Partitioner:
     def __init__(self, coords, values):
         self.coords = coords
@@ -24,12 +26,12 @@ class NeighborhoodPartitioner(Partitioner):
         mask = self.nbrs[idx, (self.dists[idx] >= min_dist) & (self.dists[idx] <= radius)]
         return self.coords[mask], self.values[mask]
 
-class ScalePartitioner(Partitioner):
+class ScaleGridPartitioner(Partitioner):
     def __init__(self, coords, values):
         super().__init__(coords, values)
         self.dists = haversine_distances(coords)
 
-    def get_scale_grid(self, idx, radius):
+    def get_scale_grid(self, idx, radius, scale):
         pass
 
 class DistanceLagPartitioner(Partitioner):
@@ -37,15 +39,34 @@ class DistanceLagPartitioner(Partitioner):
         super().__init__(coords, values)
         self.dists = haversine_distances(coords)
 
-    def get_scale_grid(self, idx, radius, lag):
+    def get_distance_lag(self, idx, radius, lag):
+        local_coords_list = []
         local_values_list = []
 
         n_lags = int(np.ceil(radius / lag))
         for i in range(n_lags):
-            values = self.values[(self.dists[idx] >= lag * i) & (self.dists[idx] < lag * (i + 1))]
-            local_values_list.append(values)
+            mask = (self.dists[idx] >= lag * i) & (self.dists[idx] < lag * (i + 1))
+            local_coords_list.append(self.coords[mask])
+            local_values_list.append(self.values[mask])
 
-        return local_values_list, self.values
+        return local_coords_list, local_values_list, self.values
 
 class DirectionSectorPartitioner(Partitioner):
-    pass
+    def __init__(self, coords, values):
+        super().__init__(coords, values)
+        self.dists = haversine_distances(coords)
+
+    def get_direction_sector(self, idx, radius, n_splits):
+        local_coords_list = []
+        local_values_list = []
+
+        neighbor_indices = np.where(self.dists[idx] <= radius)[0]
+        arc_angles = _get_arc_angles(self.coords[neighbor_indices], self.coords[idx])
+
+        split_angle = 2 * np.pi / n_splits
+        for i in range(n_splits):
+            mask = (arc_angles >= -np.pi + i * split_angle) & (arc_angles < -np.pi + (i + 1) * split_angle)
+            local_coords_list.append(self.coords[neighbor_indices[mask]])
+            local_values_list.append(self.values[neighbor_indices[mask]])
+
+        return local_coords_list, local_values_list, self.values
