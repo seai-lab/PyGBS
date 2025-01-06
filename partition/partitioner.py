@@ -49,7 +49,7 @@ class DistanceLagPartitioner(Partitioner):
             local_coords_list.append(self.coords[mask])
             local_values_list.append(self.values[mask])
 
-        return local_coords_list, local_values_list, self.values
+        return local_coords_list, local_values_list, np.concatenate(local_values_list)
 
 class DirectionSectorPartitioner(Partitioner):
     def __init__(self, coords, values):
@@ -69,4 +69,4 @@ class DirectionSectorPartitioner(Partitioner):
             local_coords_list.append(self.coords[neighbor_indices[mask]])
             local_values_list.append(self.values[neighbor_indices[mask]])
 
-        return local_coords_list, local_values_list, self.values
+        return local_coords_list, local_values_list, np.concatenate(local_values_list)
