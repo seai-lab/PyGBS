@@ -5,7 +5,7 @@ from .surprisal import AnalyticalSurprisal
 
 analytical_surprisal = AnalyticalSurprisal()
 
-def compute_presence_nonpresence_ssi(presence_points, center, radius, density="auto", k=4):
+def compute_unmarked_ssi(presence_points, center, radius, density="auto", k=4):
     """
     :param presence_points: the lat/lon of the observed points (presence).
     :param center: the center of the evaluated neighborhood.
@@ -38,7 +38,7 @@ def compute_presence_nonpresence_ssi(presence_points, center, radius, density="a
 
     return -np.log(prob[0] + 1e-256)
 
-def compute_relative_performance_ssi(presence_points, presence_values, center, radius, density="auto", k=4):
+def compute_marked_ssi(presence_points, presence_values, center, radius, density="auto", k=4):
     """
     :param presence_points: the lat/lon of the observed points (presence).
     :param presence_values: the model performance of the observed points (presence). By default, presence values can not be zeros (reserved for non-presence values).
