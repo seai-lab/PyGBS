@@ -26,18 +26,25 @@ class NeighborhoodPartitioner(Partitioner):
         mask = self.nbrs[idx, (self.dists[idx] >= min_dist) & (self.dists[idx] <= radius)]
         return self.coords[mask], self.values[mask]
 
-class ScaleGridPartitioner(Partitioner):
+class RelativePartitioner(Partitioner):
     def __init__(self, coords, values):
         super().__init__(coords, values)
         self.dists = haversine_distances(coords)
 
     def get_scale_grid(self, idx, radius, scale):
-        pass
+        local_coords_list = []
+        local_values_list = []
 
-class DistanceLagPartitioner(Partitioner):
-    def __init__(self, coords, values):
-        super().__init__(coords, values)
-        self.dists = haversine_distances(coords)
+        k = int(np.ceil(radius / scale))
+        lat, lon = self.coords[idx]
+
+        for i in range(-k, k, 1):
+            for j in range(-k, k, 1):
+                mask = (self.coords[:, 0] >= lat + i*scale) & (self.coords[:, 0] < lat + (i+1)*scale) & (self.coords[:, 1] >= lon + j*scale) & (self.coords[:, 1] < lon + (j+1)*scale)
+                local_coords_list.append(self.coords[mask])
+                local_values_list.append(self.values[mask])
+
+        return local_coords_list, local_values_list, np.concatenate(local_values_list)
 
     def get_distance_lag(self, idx, radius, lag):
         local_coords_list = []
@@ -50,11 +57,6 @@ class DistanceLagPartitioner(Partitioner):
             local_values_list.append(self.values[mask])
 
         return local_coords_list, local_values_list, np.concatenate(local_values_list)
-
-class DirectionSectorPartitioner(Partitioner):
-    def __init__(self, coords, values):
-        super().__init__(coords, values)
-        self.dists = haversine_distances(coords)
 
     def get_direction_sector(self, idx, radius, n_splits):
         local_coords_list = []

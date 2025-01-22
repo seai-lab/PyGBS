@@ -1,1 +1,1 @@
-from .partitioner import NeighborhoodPartitioner
+from .partitioner import NeighborhoodPartitioner, RelativePartitioner

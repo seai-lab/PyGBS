@@ -1,18 +1,27 @@
 import numpy as np
+import scipy
 
-def compute_kl_sri(local_values, global_values):
-    no_prior_freqs_local, _ = np.histogram(no_prior_perfs_local, bins=bins)
-    no_prior_probs_local = no_prior_freqs_local.astype(np.float64) / n
-    no_prior_scores = scipy.special.rel_entr(no_prior_probs_local, no_prior_probs_global)
+def compute_kl_sri(local_values_list, global_values, bins=10, threshold=20, smooth=1e-8):
+    kl_divs, weights = [], []
 
-    spherec_freqs_local, _ = np.histogram(spherec_perfs_local, bins=bins)
-    spherec_probs_local = spherec_freqs_local.astype(np.float64) / n
-    spherec_scores = scipy.special.rel_entr(spherec_probs_local, spherec_probs_global)
+    N = global_values.shape[0]
+    if N <= 0:
+        return 0., 0.
 
+    freqs_global, _ = np.histogram(global_values, bins=bins)
+    probs_global = freqs_global.astype(np.float64) / N
 
-    grid_weights.append(n)
-    no_prior_raw_scores.append(np.sum(no_prior_scores))
-    spherec_raw_scores.append(np.sum(spherec_scores))
+    for local_values in local_values_list:
+        n = local_values.shape[0]
+        if n < threshold:
+            continue
 
-    xs.append(lon + scale / 2)
-    ys.append(lat + scale / 2)
+        freqs_local, _ = np.histogram(local_values, bins=bins)
+        probs_local = freqs_local.astype(np.float64) / n + smooth
+
+        kl_div = np.sum(scipy.special.rel_entr(probs_global, probs_local))
+
+        kl_divs.append(kl_div)
+        weights.append(n / N)
+
+    return np.array(kl_divs), np.array(weights)
