@@ -1,12 +1,12 @@
 from gbsio import read_from_csv
-from partition import NeighborhoodPartitioner
+from partition import SSIPartitioner
 from gbs import compute_unmarked_ssi, compute_marked_ssi
 
 ## Read coordinates and values from CSV file.
 coords, values = read_from_csv("data/example_data.csv", value_column="hit@1")
 
 ## Construct a partitioner that extract neighborhood points.
-partitioner = NeighborhoodPartitioner(coords, values, k=100)
+partitioner = SSIPartitioner(coords, values, k=100)
 
 ## The index of the center point to evaluate.
 idx = 0

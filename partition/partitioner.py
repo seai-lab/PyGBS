@@ -9,8 +9,15 @@ class Partitioner:
     def __init__(self, coords, values):
         self.coords = coords
         self.values = values
+        self.N = self.coords.shape[0]
 
-class NeighborhoodPartitioner(Partitioner):
+    def get_coords_by_idx(self, idx):
+        return self.coords[idx]
+
+    def get_values_by_idx(self, idx):
+        return self.values[idx]
+
+class SSIPartitioner(Partitioner):
     def __init__(self, coords, values, k=100):
         super().__init__(coords, values)
         self.k = k
@@ -22,18 +29,21 @@ class NeighborhoodPartitioner(Partitioner):
 
         return kdt, dists, nbrs
 
-    def get_neighborhood(self, idx, radius, min_dist=0.0):
+    def get_neighborhood(self, idx, radius, min_dist=0.0, return_idx=False):
         mask = self.nbrs[idx, (self.dists[idx] >= min_dist) & (self.dists[idx] <= radius)]
+        if return_idx:
+            return np.where(mask is True)[0]
         return self.coords[mask], self.values[mask]
 
-class RelativePartitioner(Partitioner):
+class SRIPartitioner(Partitioner):
     def __init__(self, coords, values):
         super().__init__(coords, values)
         self.dists = haversine_distances(coords)
 
-    def get_scale_grid(self, idx, radius, scale):
-        local_coords_list = []
-        local_values_list = []
+    def get_scale_grid(self, idx, radius, scale, threshold=20, return_idx=False):
+        partition_idx_list = []
+        partition_coords_list = []
+        partition_values_list = []
 
         k = int(np.ceil(radius / scale))
         lat, lon = self.coords[idx]
@@ -41,26 +51,40 @@ class RelativePartitioner(Partitioner):
         for i in range(-k, k, 1):
             for j in range(-k, k, 1):
                 mask = (self.coords[:, 0] >= lat + i*scale) & (self.coords[:, 0] < lat + (i+1)*scale) & (self.coords[:, 1] >= lon + j*scale) & (self.coords[:, 1] < lon + (j+1)*scale)
-                local_coords_list.append(self.coords[mask])
-                local_values_list.append(self.values[mask])
+                if np.sum(mask) < threshold:
+                    continue
+                partition_idx_list.append(np.where(mask is True)[0])
+                partition_coords_list.append(self.coords[mask])
+                partition_values_list.append(self.values[mask])
 
-        return local_coords_list, local_values_list, np.concatenate(local_values_list)
+        if return_idx:
+            return partition_idx_list, np.concatenate(partition_idx_list)
 
-    def get_distance_lag(self, idx, radius, lag):
-        local_coords_list = []
-        local_values_list = []
+        return partition_coords_list, partition_values_list, np.concatenate(partition_values_list)
+
+    def get_distance_lag(self, idx, radius, lag, threshold=20, return_idx=False):
+        partition_idx_list = []
+        partition_coords_list = []
+        partition_values_list = []
 
         n_lags = int(np.ceil(radius / lag))
         for i in range(n_lags):
             mask = (self.dists[idx] >= lag * i) & (self.dists[idx] < lag * (i + 1))
-            local_coords_list.append(self.coords[mask])
-            local_values_list.append(self.values[mask])
+            if np.sum(mask) < threshold:
+                continue
+            partition_idx_list.append(np.where(mask is True)[0])
+            partition_coords_list.append(self.coords[mask])
+            partition_values_list.append(self.values[mask])
 
-        return local_coords_list, local_values_list, np.concatenate(local_values_list)
+        if return_idx:
+            return partition_idx_list, np.concatenate(partition_idx_list)
 
-    def get_direction_sector(self, idx, radius, n_splits):
-        local_coords_list = []
-        local_values_list = []
+        return partition_coords_list, partition_values_list, np.concatenate(partition_values_list)
+
+    def get_direction_sector(self, idx, radius, n_splits, threshold=20, return_idx=False):
+        partition_idx_list = []
+        partition_coords_list = []
+        partition_values_list = []
 
         neighbor_indices = np.where(self.dists[idx] <= radius)[0]
         arc_angles = _get_arc_angles(self.coords[neighbor_indices], self.coords[idx])
@@ -68,7 +92,13 @@ class RelativePartitioner(Partitioner):
         split_angle = 2 * np.pi / n_splits
         for i in range(n_splits):
             mask = (arc_angles >= -np.pi + i * split_angle) & (arc_angles < -np.pi + (i + 1) * split_angle)
-            local_coords_list.append(self.coords[neighbor_indices[mask]])
-            local_values_list.append(self.values[neighbor_indices[mask]])
+            if np.sum(mask) < threshold:
+                continue
+            partition_idx_list.append(np.where(mask is True)[0])
+            partition_coords_list.append(self.coords[neighbor_indices[mask]])
+            partition_values_list.append(self.values[neighbor_indices[mask]])
 
-        return local_coords_list, local_values_list, np.concatenate(local_values_list)
+        if return_idx:
+            return partition_idx_list, np.concatenate(partition_idx_list)
+
+        return partition_coords_list, partition_values_list, np.concatenate(partition_values_list)

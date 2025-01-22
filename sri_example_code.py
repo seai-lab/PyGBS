@@ -1,14 +1,14 @@
 import numpy as np
 
 from gbsio import read_from_csv
-from partition import RelativePartitioner
+from partition import SRIPartitioner
 from gbs import compute_kl_sri
 
 ## Read coordinates and values from CSV file.
 coords, values = read_from_csv("data/example_data.csv", value_column="hit@1")
 
 ## Construct a partitioner that extract neighborhood points.
-partitioner = RelativePartitioner(coords, values)
+partitioner = SRIPartitioner(coords, values)
 
 N = coords.shape[0]
 radius = 0.5
