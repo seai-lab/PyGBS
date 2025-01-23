@@ -25,4 +25,4 @@ pnp_ssi = compute_unmarked_ssi(presence_points, center, radius, density="auto", 
 ## rp_ssi is the former relative geo-bias
 rp_ssi = compute_marked_ssi(presence_points, presence_values, center, radius, density="auto", k=4)
 
-print("Presence v.s. Non-Presence SSI Score: ", pnp_ssi, "Relative Performance SSI Score: ", rp_ssi)
+print("Unmarked SSI Score: ", pnp_ssi, "Marked SSI Score: ", rp_ssi)
