@@ -32,11 +32,3 @@ for idx in range(N):
     total_weights.append(total_list.shape[0] / N)
 
 print(np.sum(np.array(total_sris) * np.array(total_weights)))
-
-
-# ## pnp_ssi is the former base geo-bias
-# pnp_ssi = compute_unmarked_ssi(presence_points, center, radius, density="auto", k=4)
-# ## rp_ssi is the former relative geo-bias
-# rp_ssi = compute_marked_ssi(presence_points, presence_values, center, radius, density="auto", k=4)
-#
-# print("Presence v.s. Non-Presence SSI Score: ", pnp_ssi, "Relative Performance SSI Score: ", rp_ssi)
