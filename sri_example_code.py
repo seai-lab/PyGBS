@@ -22,13 +22,13 @@ for idx in range(N):
     center = coords[idx]
 
     ## Extract neighbood points.
-    # local_coords_list, local_values_list, total_list = partitioner.get_scale_grid(idx, radius, scale)
-    # local_coords_list, local_values_list, total_list = partitioner.get_distance_lag(idx, radius, lag)
-    local_coords_list, local_values_list, total_list = partitioner.get_direction_sector(idx, radius, n_splits)
+    # local_coords_list, local_values_list, neighbor_coords, neighbor_values = partitioner.get_scale_grid(idx, radius, scale)
+    # local_coords_list, local_values_list, neighbor_coords, neighbor_values = partitioner.get_distance_lag(idx, radius, lag)
+    local_coords_list, local_values_list, neighbor_coords, neighbor_values = partitioner.get_direction_sector(idx, radius, n_splits)
 
-    sris, weights = compute_kl_sri(local_values_list, total_list, bins=2)
+    sris, weights = compute_kl_sri(local_values_list, neighbor_values, bins=2)
 
     total_sris.append(np.sum(sris * weights))
-    total_weights.append(total_list.shape[0] / N)
+    total_weights.append(neighbor_values.shape[0] / N)
 
 print(np.sum(np.array(total_sris) * np.array(total_weights)))
