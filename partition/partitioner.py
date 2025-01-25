@@ -32,7 +32,7 @@ class SSIPartitioner(Partitioner):
     def get_neighborhood(self, idx, radius, min_dist=0.0, return_idx=False):
         mask = self.nbrs[idx, (self.dists[idx] >= min_dist) & (self.dists[idx] <= radius)]
         if return_idx:
-            return np.where(mask is True)[0]
+            return mask.nonzero()
         return self.coords[mask], self.values[mask]
 
 class SRIPartitioner(Partitioner):
@@ -58,7 +58,7 @@ class SRIPartitioner(Partitioner):
 
                 if np.sum(mask) < threshold:
                     continue
-                partition_idx_list.append(np.where(mask is True)[0])
+                partition_idx_list.append(mask.nonzero())
                 partition_coords_list.append(self.coords[mask])
                 partition_values_list.append(self.values[mask])
 
@@ -82,7 +82,7 @@ class SRIPartitioner(Partitioner):
 
             if np.sum(mask) < threshold:
                 continue
-            partition_idx_list.append(np.where(mask is True)[0])
+            partition_idx_list.append(mask.nonzero())
             partition_coords_list.append(self.coords[mask])
             partition_values_list.append(self.values[mask])
 
@@ -107,7 +107,7 @@ class SRIPartitioner(Partitioner):
             mask = (arc_angles >= -np.pi + i * split_angle) & (arc_angles < -np.pi + (i + 1) * split_angle)
             if np.sum(mask) < threshold:
                 continue
-            partition_idx_list.append(np.where(mask is True)[0])
+            partition_idx_list.append(mask.nonzero())
             partition_coords_list.append(self.coords[neighbor_indices[mask]])
             partition_values_list.append(self.values[neighbor_indices[mask]])
 
