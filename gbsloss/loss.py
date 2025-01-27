@@ -12,7 +12,7 @@ class GBSLoss(nn.Module):
         self.partition_lookup = dict(zip([i for i in range(self.N)], [[] for _ in range(self.N)]))
         self.stored_scores = np.zeros(self.N)
 
-class NeighborhoodLoss(GBSLoss):
+class MarkedSSILoss(GBSLoss):
     def __init__(self, partitioner: SSIPartitioner):
         super().__init__(partitioner)
 

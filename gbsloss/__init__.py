@@ -1,1 +1,1 @@
-from .loss import NeighborhoodLoss
+from .performance_transform import LogOddsPerformanceTransformer
