@@ -1,1 +1,2 @@
-from .performance_transform import LogOddsPerformanceTransformer
+from .performance_transformer import LogOddsPerformanceTransformer
+from .loss import MarkedSSILoss

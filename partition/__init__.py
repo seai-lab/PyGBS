@@ -1,1 +1,1 @@
-from .partitioner import SSIPartitioner, SRIPartitioner
+from .partitioner import Partitioner, SSIPartitioner, SRIPartitioner

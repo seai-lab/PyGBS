@@ -4,7 +4,7 @@ from sklearn.neighbors import KDTree, BallTree
 
 from scipy import sparse
 
-from utils import _latlon_to_xyz, _xyz_to_latlon, _get_polar_concentric_grid_points, _center_grid_points
+from utils import _latlon_to_xyz, _xyz_to_latlon, _get_polar_concentric_grid_points_by_density, _get_polar_concentric_grid_points_by_number, _center_grid_points
 
 def auto_density(radius, n_neighbors):
     return int(np.ceil((5 * n_neighbors) / (np.pi * radius**2)))
@@ -29,7 +29,7 @@ def construct_weight_matrix(points, k):
 
     return sparse.coo_matrix((weights, (coord_is, coord_js)), shape=(points.shape[0], points.shape[0])).toarray()
 
-def generate_background_points(center, radius, density):
+def generate_background_points(center, radius, density=None, n_points=None):
     """
     :param center: the (latitude, longitude) of the center point, in radians.
     :param radius: the range of circular grid, in radians. It needs to be in the range of (0, pi/2).
@@ -37,7 +37,13 @@ def generate_background_points(center, radius, density):
     :return: spherical coordinates of circular grid points with given radius and density around the given center, in radians.
     """
 
-    polar_concentric_grid_points = _get_polar_concentric_grid_points(radius, density)
+    if density is not None:
+        polar_concentric_grid_points = _get_polar_concentric_grid_points_by_density(radius, density)
+    elif n_points is not None:
+        polar_concentric_grid_points = _get_polar_concentric_grid_points_by_number(radius, n_points)
+    else:
+        assert False, "Either specify density or number of points!"
+
     xyzs = _latlon_to_xyz(polar_concentric_grid_points)
 
     rotated_xyzs = _center_grid_points(xyzs, center)

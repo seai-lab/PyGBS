@@ -27,13 +27,31 @@ def _xyz_to_latlon(xyzs):
 def _get_euler_angles(center):
     return 0.5 * np.pi - center[0], center[1]
 
-def _get_polar_concentric_grid_points(radius, density):
+def _get_polar_concentric_grid_points_by_density(radius, density):
     """
     :param radius: the range of circular grid, in radians.
     :param density: the density of grid points, in terms of point counts in unit square radian.
     :return: spherical coordinates of circular grid points with given radius and density around the northern pole.
     """
     dist = 1 / np.sqrt(density)
+    n_lag = int(np.ceil(radius / dist))
+
+    points = []
+    for i in range(1, n_lag + 1):
+        n_points = int(np.ceil(2 * np.pi * i))
+        delta_angle = 2 * np.pi / n_points
+        for j in range(n_points):
+            points.append([np.pi / 2 - dist * i, -np.pi + delta_angle * j])
+
+    return np.array(points)
+
+def _get_polar_concentric_grid_points_by_number(radius, n_points):
+    """
+    :param radius: the range of circular grid, in radians.
+    :param density: the density of grid points, in terms of point counts in unit square radian.
+    :return: spherical coordinates of circular grid points with given radius and density around the northern pole.
+    """
+    dist = np.sqrt(np.pi / n_points) * radius
     n_lag = int(np.ceil(radius / dist))
 
     points = []

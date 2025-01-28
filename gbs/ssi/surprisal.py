@@ -51,8 +51,10 @@ class AnalyticalSurprisal():
 
     def get_probability(self, Z, w_map):
         moran_I_upper = self.get_moran_I_upper(Z, w_map)
+        low = min(moran_I_upper, 2 * self.mean - moran_I_upper)
 
-        return norm.pdf(moran_I_upper, loc=self.mean, scale=self.std)
+        # return norm.pdf(moran_I_upper, loc=self.mean, scale=self.std)
+        return 2 * norm.cdf(low, loc=self.mean, scale=self.std)
 
     @staticmethod
     def compute_mean(cs, ns):
@@ -103,4 +105,4 @@ class AnalyticalSurprisal():
                 std_dict[(i, j)] = np.sqrt(var_num * igi * igj)
                 std_coef_dict[(i, j)] = np.sqrt(var_coef)
 
-        return np.sqrt(var), std_dict, std_coef_dict
+        return np.sqrt(var) + 1.0, std_dict, std_coef_dict
