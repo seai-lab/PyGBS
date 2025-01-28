@@ -26,12 +26,11 @@ class MarkedSSILoss(GBSLoss):
         super().__init__(partitioner, perf_transformer, radius)
         self.n_neighbor_points = n_neighbor_points
         self.neighborhood_points_lookup = np.zeros((self.N, self.n_neighbor_points, 2))
+        self.neighborhood_scores_lookup = torch.zeros((self.N, self.n_neighbor_points))
 
-        self.neighborhood_scores_lookup = np.zeros((self.N, self.n_neighbor_points))
-
-        self.mean_lookup = np.zeros(self.N)
-        self.std_lookup = np.zeros(self.N)
-        self.weight_matrix_lookup = np.zeros((self.N, n_neighbor_points, n_neighbor_points))
+        self.mean_lookup = torch.zeros(self.N)
+        self.std_lookup = torch.zeros(self.N)
+        self.weight_matrix_lookup = torch.zeros((self.N, n_neighbor_points, n_neighbor_points))
         self.n_cls = n_cls
         self.background_value = 1 / self.n_cls
 
@@ -64,30 +63,6 @@ class MarkedSSILoss(GBSLoss):
             self.mean_lookup[idx] = mean
             self.std_lookup[idx] = std
 
-    def compute_SSI_loss(self, idx, batch):
-        X = batch - torch.mean(batch, dim=1, keepdim=True)
-        weights = torch.FloatTensor(self.weight_matrix_lookup[idx])
-        Y = torch.einsum('bij,bj->bi', weights, X)
-        print("X, weights, Y: ", X.requires_grad, weights.requires_grad, Y.requires_grad)
-
-        moran_i_uppers = torch.sum(X * Y, dim=1, keepdim=True)
-        print("moran_i_uppers: ", moran_i_uppers.requires_grad)
-        locs, scales = torch.FloatTensor(self.mean_lookup[idx]), torch.tensor(self.std_lookup[idx])
-        print("locs, scales: ", locs.requires_grad, scales.requires_grad)
-
-        left_tails, _ = torch.min(torch.cat((moran_i_uppers, 2 * locs - moran_i_uppers), dim=1), dim=1)
-        print("left_tails: ", left_tails.requires_grad)
-
-        cdf_values = 2 * torch.distributions.normal.Normal(loc=locs, scale=scales).cdf(left_tails)
-
-        print("cdf values: ", cdf_values.requires_grad)
-
-        return -torch.log(cdf_values + 1e-256)
-
-    def store_scores(self, idxs, latents, labels):
-        scores = F.softmax(latents, axis=1)[labels].detach().cpu().numpy()
-        self.stored_scores[idxs] = scores
-
     def forward(self, idx, batch):
         X = batch - torch.mean(batch, dim=1, keepdim=True)
         weights = torch.FloatTensor(self.weight_matrix_lookup[idx])
@@ -102,7 +77,9 @@ class MarkedSSILoss(GBSLoss):
         left_tails, _ = torch.min(torch.cat((moran_i_uppers, 2 * locs - moran_i_uppers), dim=1), dim=1)
         print("left_tails: ", left_tails.requires_grad)
 
-        cdf_values = 2 * torch.distributions.normal.Normal(loc=locs, scale=scales).cdf(left_tails)
+        clamped_left_tails = torch.clamp((left_tails - locs) / scales, min=-10, max=0.)
+
+        cdf_values = 2 * torch.distributions.normal.Normal(loc=0, scale=1).cdf(clamped_left_tails)
 
         print("cdf values: ", cdf_values.requires_grad)
 
