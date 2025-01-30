@@ -8,7 +8,7 @@ from gbs import compute_kl_sri
 coords, values = read_from_csv("data/example_data.csv", value_column="hit@1")
 
 ## Construct a partitioner that extract neighborhood points.
-partitioner = SRIPartitioner(coords, values)
+partitioner = SRIPartitioner(coords)
 
 N = coords.shape[0]
 radius = 0.5
@@ -22,9 +22,12 @@ for idx in range(N):
     center = coords[idx]
 
     ## Extract neighbood points.
-    # local_coords_list, local_values_list, neighbor_coords, neighbor_values = partitioner.get_scale_grid(idx, radius, scale)
-    # local_coords_list, local_values_list, neighbor_coords, neighbor_values = partitioner.get_distance_lag(idx, radius, lag)
-    local_coords_list, local_values_list, neighbor_coords, neighbor_values = partitioner.get_direction_sector(idx, radius, n_splits)
+    local_idx_list, neighbor_idxs = partitioner.get_direction_sector(idx, radius, n_splits) # partitioner.get_scale_grid(idx, radius, scale) # partitioner.get_distance_lag(idx, radius, lag)
+    local_values_list = []
+    for idxs in local_idx_list:
+        local_values_list.append(values[idxs])
+
+    neighbor_values = values[neighbor_idxs]
 
     sris, weights = compute_kl_sri(local_values_list, neighbor_values, bins=2)
 

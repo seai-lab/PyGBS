@@ -6,20 +6,16 @@ from sklearn.metrics.pairwise import haversine_distances
 from utils.geometry import _get_arc_angles
 
 class Partitioner:
-    def __init__(self, coords, values):
+    def __init__(self, coords):
         self.coords = coords
-        self.values = values
         self.N = self.coords.shape[0]
 
     def get_coords_by_idx(self, idx):
         return self.coords[idx]
 
-    def get_values_by_idx(self, idx):
-        return self.values[idx]
-
 class SSIPartitioner(Partitioner):
-    def __init__(self, coords, values, k=100):
-        super().__init__(coords, values)
+    def __init__(self, coords, k=100):
+        super().__init__(coords)
         self.k = k
         self.kdt, self.dists, self.nbrs = self._construct_tree()
 
@@ -29,25 +25,19 @@ class SSIPartitioner(Partitioner):
 
         return kdt, dists, nbrs
 
-    def get_neighborhood(self, idx, radius, min_dist=0.0, return_idx=False):
+    def get_neighborhood(self, idx, radius, min_dist=0.0):
         mask = self.nbrs[idx, (self.dists[idx] >= min_dist) & (self.dists[idx] <= radius)]
-        if return_idx:
-            return mask.nonzero()
-        return self.coords[mask], self.values[mask]
+
+        return mask.nonzero()
 
 class SRIPartitioner(Partitioner):
-    def __init__(self, coords, values):
-        super().__init__(coords, values)
+    def __init__(self, coords):
+        super().__init__(coords)
         self.dists = haversine_distances(coords)
 
-    def get_scale_grid(self, idx, radius, scale, threshold=20, return_idx=False):
+    def get_scale_grid(self, idx, radius, scale, threshold=20):
         partition_idx_list = []
-        partition_coords_list = []
-        partition_values_list = []
-
         neighbor_indices = np.where(self.dists[idx] <= radius)[0]
-        neighbor_coords = self.coords[neighbor_indices]
-        neighbor_values = self.values[neighbor_indices]
 
         k = int(np.ceil(radius / scale))
         lat, lon = self.coords[idx]
@@ -59,22 +49,12 @@ class SRIPartitioner(Partitioner):
                 if np.sum(mask) < threshold:
                     continue
                 partition_idx_list.append(mask.nonzero())
-                partition_coords_list.append(self.coords[mask])
-                partition_values_list.append(self.values[mask])
 
-        if return_idx:
-            return partition_idx_list, neighbor_indices
+        return partition_idx_list, neighbor_indices
 
-        return partition_coords_list, partition_values_list, neighbor_coords, neighbor_values
-
-    def get_distance_lag(self, idx, radius, lag, threshold=20, return_idx=False):
+    def get_distance_lag(self, idx, radius, lag, threshold=20):
         partition_idx_list = []
-        partition_coords_list = []
-        partition_values_list = []
-
         neighbor_indices = np.where(self.dists[idx] <= radius)[0]
-        neighbor_coords = self.coords[neighbor_indices]
-        neighbor_values = self.values[neighbor_indices]
 
         n_lags = int(np.ceil(radius / lag))
         for i in range(n_lags):
@@ -83,22 +63,12 @@ class SRIPartitioner(Partitioner):
             if np.sum(mask) < threshold:
                 continue
             partition_idx_list.append(mask.nonzero())
-            partition_coords_list.append(self.coords[mask])
-            partition_values_list.append(self.values[mask])
 
-        if return_idx:
-            return partition_idx_list, neighbor_indices
+        return partition_idx_list, neighbor_indices
 
-        return partition_coords_list, partition_values_list, neighbor_coords, neighbor_values
-
-    def get_direction_sector(self, idx, radius, n_splits, threshold=20, return_idx=False):
+    def get_direction_sector(self, idx, radius, n_splits, threshold=20):
         partition_idx_list = []
-        partition_coords_list = []
-        partition_values_list = []
-
         neighbor_indices = np.where(self.dists[idx] <= radius)[0]
-        neighbor_coords = self.coords[neighbor_indices]
-        neighbor_values = self.values[neighbor_indices]
 
         arc_angles = _get_arc_angles(self.coords[neighbor_indices], self.coords[idx])
 
@@ -108,10 +78,6 @@ class SRIPartitioner(Partitioner):
             if np.sum(mask) < threshold:
                 continue
             partition_idx_list.append(mask.nonzero())
-            partition_coords_list.append(self.coords[neighbor_indices[mask]])
-            partition_values_list.append(self.values[neighbor_indices[mask]])
 
-        if return_idx:
-            return partition_idx_list, neighbor_indices
+        return partition_idx_list, neighbor_indices
 
-        return partition_coords_list, partition_values_list, neighbor_coords, neighbor_values

@@ -6,7 +6,7 @@ from gbs import compute_unmarked_ssi, compute_marked_ssi
 coords, values = read_from_csv("data/example_data.csv", value_column="hit@1")
 
 ## Construct a partitioner that extract neighborhood points.
-partitioner = SSIPartitioner(coords, values, k=100)
+partitioner = SSIPartitioner(coords, k=100)
 
 ## The index of the center point to evaluate.
 idx = 0
@@ -16,7 +16,8 @@ center = coords[idx]
 radius = 0.1
 
 ## Extract neighbood points.
-presence_points, presence_values = partitioner.get_neighborhood(idx, radius)
+presence_idxs = partitioner.get_neighborhood(idx, radius)
+presence_points, presence_values = coords[presence_idxs], values[presence_idxs]
 
 ## Use automatic density estimation. Users can manually specify this hyperparameter.
 

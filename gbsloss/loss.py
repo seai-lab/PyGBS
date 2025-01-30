@@ -38,7 +38,7 @@ class MarkedSSILoss(GBSLoss):
 
     def initialize_weight_matrix_lookup(self):
         for idx in range(self.N):
-            presence_idxs = self.partitioner.get_neighborhood(idx, self.radius, return_idx=True)[0]
+            presence_idxs = self.partitioner.get_neighborhood(idx, self.radius)[0]
             presence_points = self.partitioner.coords[presence_idxs]
 
             n_background_points = self.n_neighbor_points - presence_idxs.shape[0]
@@ -62,7 +62,7 @@ class MarkedSSILoss(GBSLoss):
             # self.mean_lookup[idx] = mean
             # self.std_lookup[idx] = std
 
-    def compute_scores(self, idx, batch, labels):
+    def compute_scores(self, batch, labels):
         """
         :param idx: indices of the samples in the batch, (B,).
         :param batch: the output of the last layer before softmax, (B,C).

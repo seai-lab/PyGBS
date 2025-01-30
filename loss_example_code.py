@@ -18,7 +18,7 @@ n_neighbor_points = 200
 bins = torch.arange(-10, 10.1, 1.0)
 
 ## Construct a partitioner that extract neighborhood points.
-partitioner = SSIPartitioner(coords, values, k=k)
+partitioner = SSIPartitioner(coords, k=k)
 perf_transformer = LogOddsPerformanceTransformer(bins)
 criterion = MarkedSSILoss(partitioner, perf_transformer, radius=radius, n_cls=n_cls, n_neighbor_points=n_neighbor_points)
 
@@ -38,7 +38,7 @@ with torch.no_grad():
         batch = data
 
         #### update model performance cache
-        scores = criterion.compute_scores(idx, batch, labels)
+        scores = criterion.compute_scores(batch, labels)
         criterion.update_scores_lookup(idx, scores)
 
 criterion.update_distribution_lookup() # update distribution estimations after each epoch.
@@ -55,8 +55,7 @@ for epoch in range(1): #### replace this for-loop with dataloader iteration.
         batch_labels = labels[idx]
 
         #### compute discretized model performance scores
-        scores = criterion.compute_scores(idx, batch, batch_labels)
-        criterion.update_scores_lookup(idx, scores)
+        scores = criterion.compute_scores(batch, batch_labels)
 
         #### compute loss
         ssi_loss = criterion(idx, scores)
@@ -67,7 +66,10 @@ for epoch in range(1): #### replace this for-loop with dataloader iteration.
         print(batch.grad)
         print(torch.sum(torch.abs(batch.grad)))
 
-        # criterion.update_scores_lookup(idx, scores)
+        criterion.update_scores_lookup(idx, scores)
+
+        ## update every 1000 steps
+        # criterion.update_distribution_lookup()
 
 
     criterion.update_distribution_lookup()  # update distribution estimations after each epoch.
