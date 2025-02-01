@@ -11,7 +11,7 @@ We will be actively supporting more GBS categories in the future.
 
 ## Supported Geo-Bias Scores
 
-![Illustration of Supported Geo-Bias Scores](readme/GBS_5.pdf)
+![Illustration of Supported Geo-Bias Scores](readme/GBS_5.png)
 
 ### SSI Scores
 In classic geostatistics, an _unmarked_ measurement only cares about the spatial distribution of data (i.e., the data points are not "marked" with specific values), while a _marked_ measurement additionally cares about the values of data. Following this naming tradition, we have two types of SSI Scores:
