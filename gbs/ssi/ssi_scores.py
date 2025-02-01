@@ -16,7 +16,7 @@ def compute_unmarked_ssi(presence_points, center, radius, density="auto", k=4):
     """
     if density == "auto":
         density = auto_density(radius, presence_points.shape[0])
-        print("Density: ", density)
+        # print("Density: ", density)
 
     presence_values = np.ones(presence_points.shape[0])
     nonpresence_points = generate_background_points(center, radius, density)
