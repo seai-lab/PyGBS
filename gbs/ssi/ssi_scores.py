@@ -50,7 +50,7 @@ def compute_marked_ssi(presence_points, presence_values, center, radius, density
     """
     if density == "auto":
         density = auto_density(radius, presence_points.shape[0])
-        print("Density: ", density)
+        # print("Density: ", density)
 
     nonpresence_points = generate_background_points(center, radius, density)
     nonpresence_values = np.zeros(nonpresence_points.shape[0])
