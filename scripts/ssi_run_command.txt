@@ -1,0 +1,7 @@
+./ssi_run.py --input data/results_subset_from_765731224134683.csv \
+                 --value-column haversine_distance_km \
+                 --coords-columns gt_latitude gt_longitude \
+                 --scale continent \
+                 --radius 0.01 \
+                 --k 400 \
+                 --marked both
