@@ -65,6 +65,12 @@ def main():
         default=None,
         help="Optional output file name. If not provided, a name is generated."
     )
+    parser.add_argument(
+        "--test",
+        type=bool,
+        default=False,
+        help="If run in test mode, only first 10 points will be processed."
+    )
     args = parser.parse_args()
 
     # Define benchmark levels for threshold calculation.
@@ -121,7 +127,11 @@ def main():
         compute_unmarked = True
 
     total = len(coords)
-    for idx in range(partitioner.N):
+    if args.test == True:
+        itercount = 10
+    else:
+        itercount = partitioner.N
+    for idx in range(itercount):
         center = coords[idx]
         # Extract neighborhood points.
         presence_idxs = partitioner.get_neighborhood(idx, args.radius)
@@ -154,7 +164,7 @@ def main():
     if args.output:
         output_file = args.output
     else:
-        output_file = "../results/{}_scale_{}_radius_{}_ssi.npz".format(
+        output_file = "./results/{}_scale_{}_radius_{}_ssi.npz".format(
             args.scale, args.radius, args.marked
         )
 

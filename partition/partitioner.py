@@ -26,10 +26,7 @@ class SSIPartitioner(Partitioner):
         return kdt, dists, nbrs
 
     def get_neighborhood(self, idx, radius, min_dist=0.0):
-        mask = self.nbrs[idx, (self.dists[idx] >= min_dist) & (self.dists[idx] <= radius)]
-
-        # return mask.nonzero() #nonzero() replaces the found neighbor ids
-        return mask
+        return self.nbrs[idx, (self.dists[idx] >= min_dist) & (self.dists[idx] <= radius)]
 
 class SRIPartitioner(Partitioner):
     def __init__(self, coords):
