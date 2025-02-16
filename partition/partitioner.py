@@ -46,7 +46,7 @@ class SRIPartitioner(Partitioner):
 
                 if len(mask[0]) < threshold:
                     continue
-                presence_points = neighbor_indices[mask[0]]
+                presence_points = mask[0]
                 partition_idx_list.append(presence_points)
 
         return partition_idx_list, neighbor_indices
