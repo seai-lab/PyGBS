@@ -46,7 +46,8 @@ class SRIPartitioner(Partitioner):
 
                 if len(mask[0]) < threshold:
                     continue
-                partition_idx_list.append(mask[0])
+                presence_points = neighbor_indices[mask[0]]
+                partition_idx_list.append(presence_points)
 
         return partition_idx_list, neighbor_indices
 
@@ -60,7 +61,8 @@ class SRIPartitioner(Partitioner):
 
             if len(mask[0]) < threshold:
                 continue
-            partition_idx_list.append(mask[0])
+            presence_points = neighbor_indices[mask[0]]
+            partition_idx_list.append(presence_points)
 
         return partition_idx_list, neighbor_indices
 
@@ -75,7 +77,8 @@ class SRIPartitioner(Partitioner):
             mask = np.where((arc_angles >= -np.pi + i * split_angle) & (arc_angles < -np.pi + (i + 1) * split_angle))
             if len(mask[0]) < threshold:
                 continue
-            partition_idx_list.append(mask[0])
+            presence_points = neighbor_indices[mask[0]]
+            partition_idx_list.append(presence_points)
 
         return partition_idx_list, neighbor_indices
 
