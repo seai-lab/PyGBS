@@ -36,33 +36,35 @@ class SRIPartitioner(Partitioner):
     def get_scale_grid(self, idx, radius, scale, threshold=20):
         partition_idx_list = []
         neighbor_indices = np.where(self.dists[idx] <= radius)[0]
+        neighbor_coords = self.coords[neighbor_indices]
 
         k = int(np.ceil(radius / scale))
         lat, lon = self.coords[idx]
 
         for i in range(-k, k, 1):
             for j in range(-k, k, 1):
-                mask = np.where((self.coords[:, 0] >= lat + i*scale) & (self.coords[:, 0] < lat + (i+1)*scale) & (self.coords[:, 1] >= lon + j*scale) & (self.coords[:, 1] < lon + (j+1)*scale))
+                mask = np.where((neighbor_coords[:, 0] >= lat + i*scale) & (neighbor_coords[:, 0] < lat + (i+1)*scale) & (neighbor_coords[:, 1] >= lon + j*scale) & (neighbor_coords[:, 1] < lon + (j+1)*scale))
 
                 if len(mask[0]) < threshold:
                     continue
-                presence_points = neighbor_indices[mask[0]]
-                partition_idx_list.append(presence_points)
+                presence_idxs = neighbor_indices[mask[0]]
+                partition_idx_list.append(presence_idxs)
 
         return partition_idx_list, neighbor_indices
 
     def get_distance_lag(self, idx, radius, lag, threshold=20):
         partition_idx_list = []
         neighbor_indices = np.where(self.dists[idx] <= radius)[0]
+        neighbor_dists = self.dists[idx, neighbor_indices]
 
         n_lags = int(np.ceil(radius / lag))
         for i in range(n_lags):
-            mask = np.where((self.dists[idx] >= lag * i) & (self.dists[idx] < lag * (i + 1)))
+            mask = np.where((neighbor_dists >= lag * i) & (neighbor_dists < lag * (i + 1)))
 
             if len(mask[0]) < threshold:
                 continue
-            presence_points = neighbor_indices[mask[0]]
-            partition_idx_list.append(presence_points)
+            presence_idxs = neighbor_indices[mask[0]]
+            partition_idx_list.append(presence_idxs)
 
         return partition_idx_list, neighbor_indices
 
@@ -77,8 +79,8 @@ class SRIPartitioner(Partitioner):
             mask = np.where((arc_angles >= -np.pi + i * split_angle) & (arc_angles < -np.pi + (i + 1) * split_angle))
             if len(mask[0]) < threshold:
                 continue
-            presence_points = neighbor_indices[mask[0]]
-            partition_idx_list.append(presence_points)
+            presence_idxs = neighbor_indices[mask[0]]
+            partition_idx_list.append(presence_idxs)
 
         return partition_idx_list, neighbor_indices
 
