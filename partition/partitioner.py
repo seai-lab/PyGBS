@@ -51,9 +51,6 @@ class SRIPartitioner(Partitioner):
                 presence_idxs = neighbor_indices[mask[0]]
                 partition_idx_list.append(presence_idxs)
 
-                presence_points = mask[0]
-                partition_idx_list.append(presence_points)
-
         return partition_idx_list, neighbor_indices
 
     def get_distance_lag(self, idx, radius, lag, threshold=20):
