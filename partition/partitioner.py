@@ -42,11 +42,11 @@ class SRIPartitioner(Partitioner):
 
         for i in range(-k, k, 1):
             for j in range(-k, k, 1):
-                mask = (self.coords[:, 0] >= lat + i*scale) & (self.coords[:, 0] < lat + (i+1)*scale) & (self.coords[:, 1] >= lon + j*scale) & (self.coords[:, 1] < lon + (j+1)*scale)
+                mask = np.where((self.coords[:, 0] >= lat + i*scale) & (self.coords[:, 0] < lat + (i+1)*scale) & (self.coords[:, 1] >= lon + j*scale) & (self.coords[:, 1] < lon + (j+1)*scale))
 
-                if np.sum(mask) < threshold:
+                if len(mask[0]) < threshold:
                     continue
-                partition_idx_list.append(mask)
+                partition_idx_list.append(mask[0])
 
         return partition_idx_list, neighbor_indices
 
@@ -56,11 +56,11 @@ class SRIPartitioner(Partitioner):
 
         n_lags = int(np.ceil(radius / lag))
         for i in range(n_lags):
-            mask = (self.dists[idx] >= lag * i) & (self.dists[idx] < lag * (i + 1))
+            mask = np.where((self.dists[idx] >= lag * i) & (self.dists[idx] < lag * (i + 1)))
 
-            if np.sum(mask) < threshold:
+            if len(mask[0]) < threshold:
                 continue
-            partition_idx_list.append(mask)
+            partition_idx_list.append(mask[0])
 
         return partition_idx_list, neighbor_indices
 
@@ -72,10 +72,10 @@ class SRIPartitioner(Partitioner):
 
         split_angle = 2 * np.pi / n_splits
         for i in range(n_splits):
-            mask = (arc_angles >= -np.pi + i * split_angle) & (arc_angles < -np.pi + (i + 1) * split_angle)
-            if np.sum(mask) < threshold:
+            mask = np.where((arc_angles >= -np.pi + i * split_angle) & (arc_angles < -np.pi + (i + 1) * split_angle))
+            if len(mask[0]) < threshold:
                 continue
-            partition_idx_list.append(mask)
+            partition_idx_list.append(mask[0])
 
         return partition_idx_list, neighbor_indices
 
