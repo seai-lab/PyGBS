@@ -44,7 +44,7 @@ def create_fishnet(cell_size=1.0):
     return fishnet
 
 
-def spatial_join_and_plot(input_file_path, cell_size=1.0, extent=[-180, 180, -90, 90], lon='lon1', lat='lat1', vmin = 0.0, vmax= 600, metric="hit@1", label_name='Accuracy', title=False):
+def spatial_join_and_plot(input_file_path, cell_size=1.0, extent=[-180, 180, -90, 90], lon='lon1', lat='lat1', vmin = 0.0, vmax= 600, metric="hit@1", reverse = False, label_name='Accuracy', title=False):
     """
     Perform a spatial join to calculate the average value and pnp_ssi for points in each grid cell.
 
@@ -56,19 +56,23 @@ def spatial_join_and_plot(input_file_path, cell_size=1.0, extent=[-180, 180, -90
 
     # Load points from the CSV file
     data = pd.read_csv(input_file_path, low_memory=False).dropna(
-        subset=['lon1', 'lat1'])
+        subset=[lon, lat])
+    if reverse:
+        data[metric] = 1- data[metric]
+        
     gdf_points = gpd.GeoDataFrame(
         data, geometry=gpd.points_from_xy(data[lon], data[lat]), crs="EPSG:4326"
     )
 
     # Perform spatial join: Assign points to grid cells
     joined = gpd.sjoin(gdf_points, fishnet, how="inner")
-
+    
     if metric in ["acc", "hit@1"]:
         averages = joined.groupby('index_right').agg(
             value=(metric, 'mean')
         ).reset_index()
-    elif metric in ["pnp_ssi", "rp_ssi", "sri-lag", "sri-scale", "sri-dir"]:
+    else:
+    # elif metric in ["pnp_ssi", "rp_ssi", "sri-lag", "sri-scale", "sri-dir"]:
         # averages = joined.groupby('index_right').apply(
         #     lambda x: np.average(x[metric], weights=x['weight'])
         # ).reset_index(name='value')
@@ -89,7 +93,7 @@ def spatial_join_and_plot(input_file_path, cell_size=1.0, extent=[-180, 180, -90
     ax.set_extent(extent, crs=ccrs.PlateCarree())
 
     # Plot the fishnet with average values
-    vmin = 0.0 # fishnet['value'].min()
+    # fishnet['value'].min()
     # vmax = fishnet['value'].max()
 
     cmap = plt.cm.get_cmap('Reds')
@@ -139,7 +143,7 @@ if __name__ == "__main__":
     extent = [-180, 180, -80, 90]
     lon = 'lon1'
     lat = 'lat1'
-    metric = "rp_ssi"  # "pnp_ssi", "rp_ssi","sri-lag", "sri-scale", "sri-dir"]
+    metric = "hit@1"
 
     for filename in os.listdir(input_folder):
         if filename.endswith(".csv"):  # only CSV files
@@ -148,9 +152,9 @@ if __name__ == "__main__":
             model, _ = model.split("_", 1)
             if dataset != "eurosat":
                 spatial_join_and_plot(input_file_path, cell_size=cell_size,
-                                    extent=extent, lon=lon, lat=lat, metric=metric, label_name='Marked SSI', title=False)
+                                    extent=extent, lon=lon, lat=lat, vmax=1.0, metric=metric, label_name='Accuracy', title=False)
             else:
                 spatial_join_and_plot(input_file_path, cell_size=cell_size,
-                                    extent=[-30, 50, 30, 70], lon=lon, lat=lat, metric=metric, label_name='Marked SSI', title=False)
+                                    extent=[-30, 50, 30, 70], lon=lon, lat=lat, vmax=1.0, metric=metric, label_name='Accuracy', title=False)
             plt.savefig(os.path.join(
-                output_folder, f"{filename[:-4]}_{metric}.jpg"), format='jpg', dpi=300, bbox_inches='tight')
+                output_folder, f"{dataset}_{model}_acc.jpg"), format='jpg', dpi=300, bbox_inches='tight')
