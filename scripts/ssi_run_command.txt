@@ -1,7 +1,0 @@
-python -m scripts.ssi_run --input data/results_00_gt.csv \
-                 --value-column haversine_distance_km \
-                 --coords-columns gt_latitude gt_longitude \
-                 --scale continent \
-                 --radius 0.01 \
-                 --k 400 \
-                 --marked both

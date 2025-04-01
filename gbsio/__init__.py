@@ -1,1 +1,0 @@
-from .reader import read_from_csv
