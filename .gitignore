@@ -1,0 +1,12 @@
+
+.idea/Geo-Bias-Score.iml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+gbs/__pycache__/__init__.cpython-312.pyc
+gbs/ssi/__pycache__/__init__.cpython-312.pyc
+gbs/ssi/__pycache__/ssi_scores.cpython-312.pyc
+gbs/ssi/__pycache__/surprisal.cpython-312.pyc
+gbs/ssi/__pycache__/utils.cpython-312.pyc
+*.pyc
