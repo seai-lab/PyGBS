@@ -1,7 +1,7 @@
-# PyGBS: A Python Toolbox for Evaluating and Harnessing Geo-Bias
+# GeoBS: A Python Toolbox for Evaluating and Harnessing Geo-Bias
 
 ## Overview
-**PyGBS** stands for **Py**thon for **G**eo-**B**ias **S**cores. It provides users with a collection of information-theoretic, model-agnostic metrics of geospatial bias (i.e., non-uniform model performance across different regions on Earth). It is complementary to existing model performance metrics such as accuracy, precision, recall and reciprocal rank. 
+**GeoBS** stands for **Geo**-**B**ias **S**cores. It provides users with a collection of information-theoretic, model-agnostic metrics of geospatial bias (i.e., non-uniform model performance across different regions on Earth). It is complementary to existing model performance metrics such as accuracy, precision, recall and reciprocal rank. 
 
 This project aims at providing a plug-and-play toolbox for researchers to painlessly benchmarking the geo-bias of their models, encouraging them to report the geo-bias scores alongside with other metrics, and using geo-bias scores as training objectives to help harness the geo-bias of models. We hope this will boost the fairness and trustworthiness of spatial data analysis and GeoAI research -- in fact, we find that while introducing fine-grained geospatial information into models greatly improves the performance, it also significantly increases geo-bias. It is important to pay attention to the both sides of the coin. 
 
